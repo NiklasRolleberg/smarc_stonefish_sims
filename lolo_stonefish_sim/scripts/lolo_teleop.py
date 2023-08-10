@@ -44,14 +44,14 @@ class TeleopServer(object):
 
         #self.joint_states = rospy.Publisher('/sam_auv/desired_joint_states', JointState, queue_size=10)
         #self.thrusters = rospy.Publisher('/sam_auv/thruster_setpoints', Setpoints, queue_size=10)
-        self.rudder_angles = rospy.Publisher('core/rudder_cmd', Float32, queue_size=10)
-        self.elevator_angle = rospy.Publisher('core/elevator_cmd', Float32, queue_size=10)
-        self.elevon_stbd_angle = rospy.Publisher('core/elevon_strb_cmd', Float32, queue_size=10)
-        self.elevon_port_angle = rospy.Publisher('core/elevon_port_cmd', Float32, queue_size=10)
-        self.thruster1_rpms = rospy.Publisher('core/thruster1_cmd', ThrusterRPM, queue_size=10)
-        self.thruster2_rpms = rospy.Publisher('core/thruster2_cmd', ThrusterRPM, queue_size=10)
+        self.rudder_angles = rospy.Publisher('/lolo/core/rudder_cmd', Float32, queue_size=10)
+        self.elevator_angle = rospy.Publisher('/lolo/core/elevator_cmd', Float32, queue_size=10)
+        self.elevon_stbd_angle = rospy.Publisher('/lolo/core/elevon_strb_cmd', Float32, queue_size=10)
+        self.elevon_port_angle = rospy.Publisher('/lolo/core/elevon_port_cmd', Float32, queue_size=10)
+        self.thruster1_rpms = rospy.Publisher('/lolo/core/thruster1_cmd', ThrusterRPM, queue_size=10)
+        self.thruster2_rpms = rospy.Publisher('/lolo/core/thruster2_cmd', ThrusterRPM, queue_size=10)
 
-        rospy.Subscriber("/sam_auv/camera_thruster/camera_image", Image, self.callback)
+        #rospy.Subscriber("/sam_auv/camera_thruster/camera_image", Image, self.callback)
 
         screen = pygame.display.set_mode((200, 200))
         pygame.display.flip()
@@ -77,8 +77,12 @@ class TeleopServer(object):
 
             if keys[K_LEFT]:
                 self.joint_z_angle = -joint_angle
+                self.thruster1_rpms.publish(thrust_level)
+                self.thruster2_rpms.publish(-thrust_level)
             if keys[K_RIGHT]:
                 self.joint_z_angle = joint_angle
+                self.thruster1_rpms.publish(-thrust_level)
+                self.thruster2_rpms.publish(thrust_level)
             if keys[K_UP]:
                 self.joint_y_angle = joint_angle
             if keys[K_DOWN]:
@@ -87,15 +91,15 @@ class TeleopServer(object):
                 self.thruster1_rpms.publish(thrust_level)
                 self.thruster2_rpms.publish(thrust_level)
             if keys[K_s]:
-                self.thruster1_rpms.publish(0.)
-                self.thruster2_rpms.publish(0.)
+                self.thruster1_rpms.publish(-thrust_level)
+                self.thruster2_rpms.publish(-thrust_level)
 
             #thruster_angles.position = [self.joint_z_angle, self.joint_y_angle]
             #self.joint_states.publish(thruster_angles)
             #self.thruster_angles.publish(self.joint_y_angle, self.joint_z_angle, header)
             self.rudder_angles.publish(self.joint_z_angle)
             self.elevator_angle.publish(self.joint_y_angle)
-            self.elevon_port_angle.publish(-self.joint_y_angle)
+            self.elevon_port_angle.publish(self.joint_y_angle)
             self.elevon_stbd_angle.publish(self.joint_y_angle)
 
             pygame.event.pump()

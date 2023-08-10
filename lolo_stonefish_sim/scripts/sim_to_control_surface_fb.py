@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     while not rospy.is_shutdown():
         elevon_p_pub.publish(elevon_p)
-        elevon_s_pub.publish(elevon_s)
+        elevon_s_pub.publish(-elevon_s)
         rudder_pub.publish(rudder)
         elevator_pub.publish(elevator)
         rate.sleep()

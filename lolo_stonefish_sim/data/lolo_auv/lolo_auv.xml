@@ -27,13 +27,31 @@
             <compound_transform rpy="0.0 1.571 0.0" xyz="-0.7 0.0 0.2"/>
         </internal_part>
         -->
+        <!--
+        <external_part name="body_lif1" type="wing" physics="submerged" buoyant="false">
+            <dimensions base_chord="1.0" tip_chord="0.5" length="1" naca="4000"/>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <material name="Neutral"/>
+            <look name="Yellow"/>
+            <compound_transform rpy="0 0.0 0.0" xyz="0 0.0 0"/>
+        </external_part>
+        <external_part name="body_lif2" type="wing" physics="submerged" buoyant="false">
+            <dimensions base_chord="1.0" tip_chord="0.5" length="1" naca="4000"/>
+            <origin xyz="0.0 0.0 0.0" rpy="0 0.0 0.0"/>
+            <material name="Neutral"/>
+            <look name="Yellow"/>
+            <compound_transform rpy="3.1415 0.0 0.0" xyz="0 0.0 0"/>
+        </external_part>
+        -->
+
         <internal_part name="WeightBlock" type="box" physics="submerged" buoyant="true">
             <!-- <dimensions radius="0.3" height="1.5"/> -->
             <dimensions xyz="1.7 0.8 0.3"/>
             <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
             <material name="Neutral"/>
 			<!--Bouyant=270-->
-			<mass value="273.0"/>
+			<!--<mass value="273.0"/>-->
+            <mass value="272.5"/>
             <look name="manipulator"/>
 			<!--x=1.26 is pitching up a bit when mass=273 -->
 			<!--x=1.245 is about level when mass=273 -->
@@ -45,7 +63,7 @@
     <actuator name="ThrusterSurge1" type="thruster">
         <link name="Vehicle"/>
         <origin rpy="0.0 0.0 3.1416" xyz="-0.89 -0.275 0.0"/>
-        <specs thrust_coeff="0.5" torque_coeff="0.05" max_rpm="$(param lolo_max_rpm)" inverted="true"/>
+        <specs thrust_coeff="20" torque_coeff="0.05" max_rpm="$(param lolo_max_rpm)" inverted="true"/>
         <propeller diameter="0.12" right="true">
             <mesh filename="$(find lolo_stonefish_sim)/data/lolo_auv/mesh/propeller.obj" scale="1.0"/>
             <material name="Neutral"/>
@@ -56,7 +74,7 @@
     <actuator name="ThrusterSurge2" type="thruster">
         <link name="Vehicle"/>
         <origin rpy="0.0 0.0 3.1416" xyz="-0.89 0.275 0.0"/>
-        <specs thrust_coeff="0.5" torque_coeff="0.05" max_rpm="$(param lolo_max_rpm)" inverted="false"/>
+        <specs thrust_coeff="20" torque_coeff="0.05" max_rpm="$(param lolo_max_rpm)" inverted="false"/>
         <propeller diameter="0.12" right="false">
             <mesh filename="$(find lolo_stonefish_sim)/data/lolo_auv/mesh/propeller.obj" scale="1.0"/>
             <material name="Neutral"/>
@@ -79,7 +97,7 @@
     <actuator name="RudderPort" type="rudder">
         <link name="Vehicle"/>
         <origin rpy="0.0 0.0 0.0" xyz="-0.44 0.275 0.0"/>
-        <specs drag_coeff="2.0" lift_coeff="3.0" max_angle="0.6" inverted="false" area="0.06"/>
+        <specs drag_coeff="2.0" lift_coeff="3.0" max_angle="0.6" inverted="true" area="0.06"/>
         <visual>
             <mesh filename="$(find lolo_stonefish_sim)/data/lolo_auv/mesh/fin.obj" scale="1.0"/>
             <material name="Neutral"/>
@@ -91,7 +109,7 @@
     <actuator name="RudderStbd" type="rudder">
         <link name="Vehicle"/>
         <origin rpy="0.0 0.0 0.0" xyz="-0.44 -0.275 0.0"/>
-        <specs drag_coeff="2.0" lift_coeff="3.0" max_angle="0.6" inverted="false" area="0.06"/>
+        <specs drag_coeff="2.0" lift_coeff="3.0" max_angle="0.6" inverted="true" area="0.06"/>
         <visual>
             <mesh filename="$(find lolo_stonefish_sim)/data/lolo_auv/mesh/fin.obj" scale="1.0"/>
             <material name="Neutral"/>
@@ -136,11 +154,11 @@
 		<ros_publisher topic="/$(arg robot_name)/sim/odom"/>
 	</sensor>
 
-    <sensor name="imu_link_ned" type="imu" rate="200.0">
+    <sensor name="imu_link" type="imu" rate="30.0">
         <link name="Vehicle"/>
-        <origin rpy="0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+        <origin rpy="3.1416 0.0 0.0" xyz="0.0 0.0 0.0"/>
         <noise angle="0.000001745" angular_velocity="0.00001745"/>
-        <ros_publisher topic="/$(arg robot_name)/sim/imu_ned"/>
+        <ros_publisher topic="/$(arg robot_name)/sim/imu"/>
     </sensor>
 
     <sensor name="pressure_link" type="pressure" rate="5.0">
@@ -150,10 +168,11 @@
         <ros_publisher topic="/$(arg robot_name)/sim/pressure"/>
     </sensor>
 
-    <sensor name="gps_link" type="gps" rate="50.0">
+    <sensor name="gps_link" type="gps" rate="5.0">
         <link name="Vehicle"/>
         <origin rpy="0.0 0.0 0.0" xyz="0.836 0.0 0.44"/>
-        <noise ned_position="0.5"/>
+        <!--noise ned_position="0.5"/>-->
+        <noise ned_position="0.0"/>
 		<ros_publisher topic="/$(arg robot_name)/sim/gps"/>
     </sensor>
 
@@ -174,10 +193,11 @@
         <ros_publisher topic="/$(arg robot_name)/sim/usbl"/>
     </comm>
 
+    <!-- <world_transform rpy="0 0.0 0" xyz="$(arg robot_pos)"/> -->
     <world_transform rpy="3.1416 0.0 1.57" xyz="$(arg robot_pos)"/>
 
-    <ros_publisher servos="/$(arg robot_name)/joint_states"/>
-	<ros_subscriber rudders="/$(arg robot_name)/sim/rudder_setpoints" thrusters="/$(arg robot_name)/sim/thruster_setpoints" servos="/$(arg robot_name)/desired_joint_states"/>
+    <ros_publisher servos="/$(arg robot_name)/sim/joint_states"/>
+	<ros_subscriber rudders="/$(arg robot_name)/sim/rudder_setpoints" thrusters="/$(arg robot_name)/sim/thruster_setpoints" servos="/$(arg robot_name)/sim/desired_joint_states"/>
     <ros_base_link_transforms publish="$(param simulate_dr)"/>
 
 </robot>

@@ -2,39 +2,43 @@
 
     <arg name="robot_name" default="lolo"/>
     <arg name="xacro_file" default="$(find lolo_description)/urdf/lolo_auv.urdf.xacro"/>
+	<arg name="origin_latitude" default="58.811480"/>
+	<arg name="origin_longitude" default="17.596177"/>
 
     <group ns="$(arg robot_name)">
 
         <!-- Use the ground truth TF transform from sim -->
 		<!--<node name="gt_tf" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 gt/$(arg robot_name)/base_link $(arg robot_name)/base_link 100" />-->
 
-        <!-- Republish ground truth odometry msg from sim -->
-		<node name="odom_republish" type="relay" pkg="topic_tools" args="sim/odom dr/odom" output="screen"/> 
-
-		<!--Also repub sim gps and dvl and pressure-->
+		<!-- Repub sim gps and dvl and pressure -->
 		<node name="gps_republish" type="relay" pkg="topic_tools" args="sim/gps core/gps" output="screen"/> 
-		<node name="dvl_republish" type="relay" pkg="topic_tools" args="sim/dvl core/dvl" output="screen"/> 
-		<node name="pressure_republish" type="relay" pkg="topic_tools" args="sim/pressure core/pressure" output="screen"/> 
-
+		<!-- <node name="dvl_republish" type="relay" pkg="topic_tools" args="sim/dvl core/dvl" output="screen"/> -->
+		<!-- <node name="pressure_republish" type="relay" pkg="topic_tools" args="sim/pressure core/pressure" output="screen"/> -->
 
         <!-- Robot description -->
         <param name="robot_description" command="$(find xacro)/xacro --inorder '$(arg xacro_file)' debug:=true robot_namespace:=$(arg robot_name)"/>
 
         <!-- Robot state publisher -->
-        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
+        <!--<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>-->
 
 
 		<!-- Latlon to utm and vice-versa, used by a lot including INS faker -->
 		<!--Should also run on the real lolo-->
+		<!--
 		<group ns="dr">
 			<include file="$(find tf_lat_lon)/launch/tf_lat_lon.launch">
 				<arg name="frame" value="$(arg robot_name)/base_link"/>
 				<arg name="lat_lon_topic" value="lat_lon"/>
 			</include>
 		</group>
-
+		-->
+		
 		<!-- Fake INS for lolo2 -->
-		<node name="sim_to_ins" type="sim_to_ins.py" pkg="lolo_stonefish_sim" output="screen"/>
+		<node name="sim_to_ins" type="sim_to_ins.py" pkg="lolo_stonefish_sim" output="screen">
+			<param name="origin_latitude" value = "$(arg origin_latitude)"/>
+			<param name="origin_longitude" value = "$(arg origin_longitude)"/>
+		</node>
+		
 		<!--Fake control surface feedbacks for lolo2-->
 		<node name="sim_to_control_surface_fb" type="sim_to_control_surface_fb.py" pkg="lolo_stonefish_sim" output="screen"/>
 
@@ -46,15 +50,17 @@
 		<!--Split apart the INS message into the standard stuff we like to have-->
 		<!--This is common to sim and real-->
 		<!--The real lolo should also have an ins to tf base_link publisher-->
-		<node name="ins_to_dr" type="ins_to_dr.py" pkg="lolo_drivers" output="screen"/>
+		<!--<node name="ins_to_dr" type="ins_to_dr.py" pkg="lolo_drivers" output="screen"/>-->
 		<!--Same thing with dvl, to fill in dr/altitude-->
-		<node name="dvl_to_altitude" type="dvl_to_altitude.py" pkg="lolo_drivers" output="screen"/>
+		<!--<node name="dvl_to_altitude" type="dvl_to_altitude.py" pkg="lolo_drivers" output="screen"/>-->
 
 
 		<!-- thruster and fin topics to setpoints bridge -->
 		<node name="ctrl_inputs_to_setpoints" type="lolo_sim_msg_bridge" pkg="lolo_stonefish_sim" output="screen">
 			<param name="robot_name" value="$(arg robot_name)"/>
 		</node>
+
+		<node name="sim_dvl_republish" type="relay" pkg="topic_tools" args="/lolo/sim/dvl /lolo/core/dvl" output="screen"/>
 
         <!-- Simple yaw controller for waypoint navigation -->
         <!--<node name="yaw_controller" type="sim_yaw_controller_node" pkg="lolo_stonefish_sim" output="screen">-->

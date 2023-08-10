@@ -235,8 +235,8 @@ public:
 
         setup_messages();
 
-        battery_pub = nh.advertise<sensor_msgs::BatteryState>("core/battery", 1000);
-        pressure_pub = nh.advertise<sensor_msgs::FluidPressure>("core/pressure", 1000);
+        //battery_pub = nh.advertise<sensor_msgs::BatteryState>("core/battery", 1000);
+        //pressure_pub = nh.advertise<sensor_msgs::FluidPressure>("core/pressure", 1000);
         //pressure_sub = nh.subscribe("sim/pressure", 1000, &LoloSimMsgBridge::pressure_callback, this);
 
         //dvl_pub = nh.advertise<smarc_msgs::DVL>("core/dvl", 1000);
@@ -273,7 +273,7 @@ public:
         thruster1_fb_pub = nh.advertise<smarc_msgs::ThrusterFeedback>("core/thruster1_fb", 1000);
         thruster2_fb_pub = nh.advertise<smarc_msgs::ThrusterFeedback>("core/thruster2_fb", 1000);
 
-        battery_timer = nh.createTimer(ros::Duration(1), &LoloSimMsgBridge::battery_timer_callback, this);
+        //battery_timer = nh.createTimer(ros::Duration(1), &LoloSimMsgBridge::battery_timer_callback, this);
         thruster_timer = nh.createTimer(ros::Duration(.1), &LoloSimMsgBridge::thruster_timer_callback, this);
     }
 

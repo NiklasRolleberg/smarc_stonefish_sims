@@ -13,6 +13,13 @@ from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu
 from geometry_msgs.msg import PoseStamped, Point
 from smarc_msgs.srv import UTMToLatLon
 from nav_msgs.msg import Odometry
+
+from geographic_msgs.msg import GeoPoint
+from geodesy.utm import *
+from geodesy import *
+
+from sensor_msgs.msg import Imu
+
 # Ins message:
 # int8 ALT_REF_GEOID=0
 # int8 ALT_REF_ELLIPSOID=1
@@ -40,27 +47,15 @@ class INS(object):
     def __init__(self,
                  robot_name="lolo"):
 
-        odom_topic = "/"+robot_name+"/sim/odom"
-        self.odom_sub = rospy.Subscriber(odom_topic, Odometry, self.odom_cb, queue_size=1)
-
-        # the usual structure of TF is:
-        # UTM -> world_ned -> gt/base_link -> base_link
         self.base_link = robot_name+"/base_link"
-        self.gt_base_link = "gt/"+self.base_link
-        self.world_link = "world_ned"
-        self.utm_link = "utm"
+        odom_topic = "/"+robot_name+"/sim/odom"
+        imu_topic =  "/"+robot_name+"/sim/imu"
+        
+        self.origin_lat = rospy.get_param("~origin_latitude", 6) #origin latitude in degrees
+        self.origin_lon = rospy.get_param("~origin_longitude", 7) #origin longitude in degrees
 
-        self.tf_listener = tf.TransformListener()
-
-        # used for turning the utm pose of gt into lat/lon
-        self.utm2ll_service_name = '/'+robot_name+"/dr/utm_to_lat_lon"
-        while True:
-            try:
-                rospy.wait_for_service(self.utm2ll_service_name, timeout=5)
-                break
-            except:
-                rospy.logwarn("Waiting for dr/utm_to_lat_lon service until it is available")
-        self.utm2ll_service = rospy.ServiceProxy(self.utm2ll_service_name, UTMToLatLon)
+        print("sim to INS origin lat: " + str(self.origin_lat))
+        print("sim to INS origin lon: " + str(self.origin_lon))
 
 
         self.ins_msg = Ins()
@@ -69,49 +64,78 @@ class INS(object):
 
         self.ins_pub = rospy.Publisher("/"+robot_name+"/core/ins", Ins, queue_size=1)
 
+        #convert origin to UTM
+        self.origin_wgs84 = GeoPoint()
+        self.origin_wgs84.latitude = self.origin_lat
+        self.origin_wgs84.longitude = self.origin_lon
+        self.origin_wgs84.altitude = 0
+        self.origin_utm = fromMsg(self.origin_wgs84)
+
+        self.odom_sub = rospy.Subscriber(odom_topic, Odometry, self.odom_cb, queue_size=1)
+
+        self.imu_msg = Imu()
+        self.imu_msg.header.frame_id = self.base_link
+        self.imu_pub = rospy.Publisher("/"+robot_name+"/core/imu", Imu, queue_size=1)
+        self.imu_sub = rospy.Subscriber(imu_topic, Imu, self.imu_cb, queue_size=1)
+
+    
+    def imu_cb(self, msg):
+        #Republish imu message with inverted axes
+        self.imu_msg.angular_velocity.x = msg.angular_velocity.x
+        self.imu_msg.angular_velocity.y = -msg.angular_velocity.y
+        self.imu_msg.angular_velocity.z = -msg.angular_velocity.z
+
+        self.imu_msg.linear_acceleration.x = msg.linear_acceleration.x
+        self.imu_msg.linear_acceleration.y = -msg.linear_acceleration.y
+        self.imu_msg.linear_acceleration.z = -msg.linear_acceleration.z
+
+        self.imu_pub.publish(self.imu_msg)
+
 
     def odom_cb(self, msg):
         """
-        move the velocities from odom to ins
-        odom is in base_link already, and since we are using gt stuff, we dont need to transform anything
+        update INS message from odometry
         """
+        # Add odom positon to UTM position
+        utmpos = UTMPoint()
+        utmpos.altitude = self.origin_utm.altitude
+        utmpos.band = self.origin_utm.band
+        utmpos.zone = self.origin_utm.zone
+        utmpos.northing = self.origin_utm.northing
+        utmpos.easting = self.origin_utm.easting
+
+        #utmpos.easting += msg.pose.pose.position.x
+        #utmpos.northing += msg.pose.pose.position.y
+
+        utmpos.northing += msg.pose.pose.position.x
+        utmpos.easting += msg.pose.pose.position.y
+
+        latlon = utmpos.toMsg()
+
+        self.ins_msg.latitude = latlon.latitude
+        self.ins_msg.longitude = latlon.longitude
+
+        # turn that quat into rpy
+        quaternion = (
+            msg.pose.pose.orientation.x,
+            msg.pose.pose.orientation.y,
+            msg.pose.pose.orientation.z,
+            msg.pose.pose.orientation.w)
+        rpy = tf.transformations.euler_from_quaternion(quaternion)
+        
+        self.ins_msg.roll = 180 + 180.0/3.1415*rpy[0]
+        if self.ins_msg.roll > 180: self.ins_msg.roll-=360 #range : -180 180
+        self.ins_msg.pitch = -(180.0/3.1415*rpy[1])
+        self.ins_msg.heading = 180.0/3.1415*rpy[2]
+
         # this altitude is altitude in the global sense, from sea level!
         self.ins_msg.altitude = -msg.pose.pose.position.z
         self.ins_msg.speed_vessel_frame.x = msg.twist.twist.linear.x
-        self.ins_msg.speed_vessel_frame.y = msg.twist.twist.linear.y
-        self.ins_msg.speed_vessel_frame.z = msg.twist.twist.linear.z
-
-
-
-    def update_from_gt(self):
-        self.tf_listener.waitForTransform(self.utm_link,
-                                          self.gt_base_link,
-                                          rospy.Time(0),
-                                          rospy.Duration(5))
-
-        gt_posi, gt_ori_quat = self.tf_listener.lookupTransform(self.utm_link,
-                                                                self.gt_base_link,
-                                                                rospy.Time(0))
-        # position is in UTM meters. need lat lon from it
-        # service wants a Point input, gt_posi is a list
-        p = Point()
-        p.x = gt_posi[0]
-        p.y = gt_posi[1]
-        p.z = 0
-        res = self.utm2ll_service(p)
-        self.ins_msg.latitude = res.lat_lon_point.latitude
-        self.ins_msg.longitude = res.lat_lon_point.longitude
-
-
-        # turn that quat into rpy
-        rpy = tf.transformations.euler_from_quaternion(gt_ori_quat)
-        self.ins_msg.roll = rpy[0]
-        self.ins_msg.pitch = rpy[1]
-        self.ins_msg.heading = rpy[2]
+        self.ins_msg.speed_vessel_frame.y = -msg.twist.twist.linear.y
+        self.ins_msg.speed_vessel_frame.z = -msg.twist.twist.linear.z
 
 
     def publish(self):
-        self.update_from_gt()
         self.ins_msg.header.seq += 1
         self.ins_msg.header.stamp = rospy.Time.now()
         self.ins_pub.publish(self.ins_msg)
