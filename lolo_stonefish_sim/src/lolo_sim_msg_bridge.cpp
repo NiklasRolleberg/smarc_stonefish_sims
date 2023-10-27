@@ -216,6 +216,8 @@ public:
         last_rudder_msg.setpoints.push_back(0.);
         last_rudder_msg.setpoints.push_back(0.);
         last_rudder_msg.setpoints.push_back(0.);
+        last_rudder_msg.setpoints.push_back(0.); //Extra lift 1
+        last_rudder_msg.setpoints.push_back(0.); //Extra lift 2
         last_thruster_msg.setpoints.push_back(0.);
         last_thruster_msg.setpoints.push_back(0.);
         zero_thruster_msg = last_thruster_msg;
@@ -251,7 +253,7 @@ public:
             //vbs_cmd_pub[i] = nh.advertise<std_msgs::Float64>(std::string("sim/") + name + "/setpoint", 1000); 
         //}
 
-        joint_states_cmd_pub = nh.advertise<sensor_msgs::JointState>("desired_joint_states", 1000);
+        joint_states_cmd_pub = nh.advertise<sensor_msgs::JointState>("sim/desired_joint_states", 1000);
         /*
         joint_states_fb_sub =  nh.subscribe("joint_states", 1000, &LoloSimMsgBridge::joint_states_fb_callback, this);
         lcg_fb_pub = nh.advertise<sam_msgs::PercentStamped>("core/lcg_fb", 1000);

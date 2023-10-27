@@ -1,0 +1,3 @@
+environment_file: "$(find sam_private_sims)/data/asko_world/asko_env.scn" 
+latitude: "58.811480"
+longitude: "17.596177"

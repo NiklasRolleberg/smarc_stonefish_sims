@@ -76,11 +76,11 @@ class TeleopServer(object):
             thrust = 0.
 
             if keys[K_LEFT]:
-                self.joint_z_angle = -joint_angle
+                self.joint_z_angle = joint_angle
                 self.thruster1_rpms.publish(thrust_level)
                 self.thruster2_rpms.publish(-thrust_level)
             if keys[K_RIGHT]:
-                self.joint_z_angle = joint_angle
+                self.joint_z_angle = -joint_angle
                 self.thruster1_rpms.publish(-thrust_level)
                 self.thruster2_rpms.publish(thrust_level)
             if keys[K_UP]:

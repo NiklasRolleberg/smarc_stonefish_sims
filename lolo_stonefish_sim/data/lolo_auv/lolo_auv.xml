@@ -27,22 +27,6 @@
             <compound_transform rpy="0.0 1.571 0.0" xyz="-0.7 0.0 0.2"/>
         </internal_part>
         -->
-        <!--
-        <external_part name="body_lif1" type="wing" physics="submerged" buoyant="false">
-            <dimensions base_chord="1.0" tip_chord="0.5" length="1" naca="4000"/>
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-            <material name="Neutral"/>
-            <look name="Yellow"/>
-            <compound_transform rpy="0 0.0 0.0" xyz="0 0.0 0"/>
-        </external_part>
-        <external_part name="body_lif2" type="wing" physics="submerged" buoyant="false">
-            <dimensions base_chord="1.0" tip_chord="0.5" length="1" naca="4000"/>
-            <origin xyz="0.0 0.0 0.0" rpy="0 0.0 0.0"/>
-            <material name="Neutral"/>
-            <look name="Yellow"/>
-            <compound_transform rpy="3.1415 0.0 0.0" xyz="0 0.0 0"/>
-        </external_part>
-        -->
 
         <internal_part name="WeightBlock" type="box" physics="submerged" buoyant="true">
             <!-- <dimensions radius="0.3" height="1.5"/> -->
@@ -50,8 +34,8 @@
             <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
             <material name="Neutral"/>
 			<!--Bouyant=270-->
-			<!--<mass value="273.0"/>-->
-            <mass value="272.5"/>
+			<mass value="270.0"/>
+            <!--<mass value="273.5"/>-->
             <look name="manipulator"/>
 			<!--x=1.26 is pitching up a bit when mass=273 -->
 			<!--x=1.245 is about level when mass=273 -->
@@ -63,8 +47,8 @@
     <actuator name="ThrusterSurge1" type="thruster">
         <link name="Vehicle"/>
         <origin rpy="0.0 0.0 3.1416" xyz="-0.89 -0.275 0.0"/>
-        <specs thrust_coeff="20" torque_coeff="0.05" max_rpm="$(param lolo_max_rpm)" inverted="true"/>
-        <propeller diameter="0.12" right="true">
+        <specs thrust_coeff="0.8" torque_coeff="0.02" max_rpm="$(param lolo_max_rpm)" inverted="false"/>
+        <propeller diameter="0.55" right="false">
             <mesh filename="$(find lolo_stonefish_sim)/data/lolo_auv/mesh/propeller.obj" scale="1.0"/>
             <material name="Neutral"/>
             <look name="manipulator"/>
@@ -74,8 +58,8 @@
     <actuator name="ThrusterSurge2" type="thruster">
         <link name="Vehicle"/>
         <origin rpy="0.0 0.0 3.1416" xyz="-0.89 0.275 0.0"/>
-        <specs thrust_coeff="20" torque_coeff="0.05" max_rpm="$(param lolo_max_rpm)" inverted="false"/>
-        <propeller diameter="0.12" right="false">
+        <specs thrust_coeff="0.8" torque_coeff="0.02" max_rpm="$(param lolo_max_rpm)" inverted="false"/>
+        <propeller diameter="0.55" right="false">
             <mesh filename="$(find lolo_stonefish_sim)/data/lolo_auv/mesh/propeller.obj" scale="1.0"/>
             <material name="Neutral"/>
             <look name="manipulator"/>
@@ -144,6 +128,30 @@
         </visual>
     </actuator>
 
+    <!-- Trying to give lolo some extra lift -->
+    <actuator name="ExtraliftPort" type="rudder">
+        <link name="Vehicle"/>
+        <origin rpy="-1.5707 0.0 0.0" xyz="1.16 0.5 0.0"/>
+        <specs drag_coeff="0.0" lift_coeff="5.0" max_angle="0" inverted="false" area="1"/>
+        <visual>
+            <mesh filename="$(find lolo_stonefish_sim)/data/lolo_auv/mesh/fin.obj" scale="0.1"/>
+            <material name="Neutral"/>
+            <look name="manipulator"/>
+            <origin rpy="1.5707 0.0 0.0" xyz="0.0 0.0 0.0"/>
+        </visual>
+    </actuator>
+
+    <actuator name="ExtraliftStbd" type="rudder">
+        <link name="Vehicle"/>
+        <origin rpy="1.5707 0.0 0.0" xyz="1.16 -0.5 0.0"/>
+        <specs drag_coeff="0.0" lift_coeff="5.0" max_angle="0" inverted="false" area="1"/>
+        <visual>
+            <mesh filename="$(find lolo_stonefish_sim)/data/lolo_auv/mesh/fin.obj" scale="0.1"/>
+            <material name="Neutral"/>
+            <look name="manipulator"/>
+            <origin rpy="1.5707 0.0 0.0" xyz="0.0 0.0 0.0"/>
+        </visual>
+    </actuator>
 
 
     <!-- Sensors -->
