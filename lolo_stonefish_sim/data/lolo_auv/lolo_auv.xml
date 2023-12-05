@@ -201,6 +201,16 @@
         <ros_publisher topic="/$(arg robot_name)/sim/usbl"/>
     </comm>
 
+    <sensor name="FLS" type="fls">
+        <specs beams="512" bins="1024" horizontal_fov="150.0" vertical_fov="30.0"/>
+        <settings range_min="0.1" range_max="157.0" gain="1.1"/>
+        <noise multiplicative="0.01" additive="0.02"/>
+        <display colormap="hot"/>
+        <origin xyz="3.0 0.0 0.0" rpy="0.0 2.1 0.0"/>
+        <link name="Vehicle"/>
+        <ros_publisher topic="/$(arg robot_name)/sim/FLS"/>
+    </sensor>
+
     <!-- <world_transform rpy="0 0.0 0" xyz="$(arg robot_pos)"/> -->
     <world_transform rpy="3.1416 0.0 1.57" xyz="$(arg robot_pos)"/>
 
