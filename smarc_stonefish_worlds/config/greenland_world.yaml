@@ -1,0 +1,3 @@
+environment_file: "$(find smarc_stonefish_worlds)/data/greenland_world/greenland_env.scn" 
+latitude: "81.93183"
+longitude: "-44.44264"
