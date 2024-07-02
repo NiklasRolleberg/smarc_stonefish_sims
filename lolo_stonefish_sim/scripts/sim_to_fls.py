@@ -5,7 +5,7 @@ Translates images from stonefish fls to norbit fls message
 """
 
 import rospy, tf
-from norbit_fls_driver.msg import Fls
+from norbit_wbms_driver.msg import WaterColumn
 from std_msgs.msg import Float32MultiArray, MultiArrayDimension
 from sensor_msgs.msg import Image
 import numpy as np
@@ -13,8 +13,7 @@ import numpy as np
 
 class imag_to_fls(object):
     def __init__(self):
-        self.fls_message = Fls()
-
+        self.fls_message = WaterColumn()
         self.fls_message.preamble = 3735928559
         self.fls_message.type = 2
         self.fls_message.size = 1050816
@@ -46,13 +45,13 @@ class imag_to_fls(object):
         self.fls_message.sonar_mode = 0
         self.fls_message.gate_tilt = 0.0
 
-        self.fls_pub = rospy.Publisher("/fls/data", Fls, queue_size=1)
+        self.fls_pub = rospy.Publisher("/lolo/sensors/fls/wc/data", WaterColumn, queue_size=1)
         self.image_sub = rospy.Subscriber("/lolo/sim/FLS/image", Image, self.image_cb, queue_size=1)
 
     
     def image_cb(self, msg):
         #receive image from similated FLS and publish it in norbit fls message format
-        print("fls image recevied")
+        #print("fls image recevied")
 
         # Get the pixel and beam directions arrays.
         pixel_data = np.array([float(d) for d in msg.data])
@@ -81,7 +80,7 @@ class imag_to_fls(object):
         array.layout.dim = [img_dim, dir_dim]
         array.data = np.array(pixel_data).astype(float).tolist() + directions.tolist()
 
-        self.fls_message.fls_raw = array
+        self.fls_message.watercolumn_raw = array
 
         self.fls_pub.publish(self.fls_message)
         

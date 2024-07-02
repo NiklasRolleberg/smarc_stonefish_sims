@@ -38,6 +38,15 @@
 			<param name="origin_latitude" value = "$(arg origin_latitude)"/>
 			<param name="origin_longitude" value = "$(arg origin_longitude)"/>
 		</node>
+
+		<!-- Sensors -->
+		<node name="sim_to_fls" type="sim_to_fls.py" pkg="lolo_stonefish_sim" output="screen"/>
+		<node name="sim_to_dvl" type="sim_to_dvl.py" pkg="lolo_stonefish_sim" output="screen"/>
+		<node name="sim_to_mbes_pc2" type="sim_to_mbes_pc2.py" pkg="lolo_stonefish_sim" output="screen"/>
+		<!-- TODO CAMERA -->
+		
+
+
 		
 		<!--Fake control surface feedbacks for lolo2-->
 		<node name="sim_to_control_surface_fb" type="sim_to_control_surface_fb.py" pkg="lolo_stonefish_sim" output="screen"/>
@@ -60,7 +69,7 @@
 			<param name="robot_name" value="$(arg robot_name)"/>
 		</node>
 
-		<node name="sim_dvl_republish" type="relay" pkg="topic_tools" args="/lolo/sim/dvl /lolo/core/dvl" output="screen"/>
+		<!--<node name="sim_dvl_republish" type="relay" pkg="topic_tools" args="/lolo/sim/dvl /lolo/core/dvl" output="screen"/>-->
 
         <!-- Simple yaw controller for waypoint navigation -->
         <!--<node name="yaw_controller" type="sim_yaw_controller_node" pkg="lolo_stonefish_sim" output="screen">-->
